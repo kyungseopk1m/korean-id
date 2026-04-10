@@ -1,0 +1,7 @@
+src/
+__test__/
+.github/
+tsconfig*.json
+jest.config.ts
+fixup.sh
+*.map

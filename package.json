@@ -1,0 +1,71 @@
+{
+  "name": "@kyungseopk1m/korean-id",
+  "version": "1.0.0",
+  "description": "한국 식별번호 통합 검증 라이브러리 (BRN/RRN/CRN/FRN)",
+  "main": "dist/cjs/index.js",
+  "module": "dist/mjs/index.js",
+  "types": "dist/mjs/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/mjs/index.d.ts",
+        "default": "./dist/mjs/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup.sh",
+    "attw": "attw --pack",
+    "publint": "publint --strict",
+    "check": "npm run attw && npm run publint",
+    "deploy": "npm run build && npm run check && npm publish --access=public"
+  },
+  "private": false,
+  "keywords": [
+    "사업자등록번호",
+    "주민등록번호",
+    "법인등록번호",
+    "외국인등록번호",
+    "BRN",
+    "RRN",
+    "CRN",
+    "FRN",
+    "korean",
+    "korea",
+    "validation",
+    "identifier"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyungseopk1m/korean-id.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kyungseopk1m/korean-id/issues",
+    "email": "kks0919@kakao.com"
+  },
+  "homepage": "https://github.com/kyungseopk1m/korean-id",
+  "author": "Kyungseop Kim <kks0919@kakao.com> (https://github.com/kyungseopk1m)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.3",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.10",
+    "jest": "^29.7.0",
+    "publint": "^0.3.12",
+    "ts-jest": "^29.2.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "files": [
+    "dist"
+  ]
+}
