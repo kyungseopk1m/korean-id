@@ -2,12 +2,12 @@
   "compilerOptions": {
     "target": "ES2022",
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "src",
     "declaration": true,
     "esModuleInterop": true,
     "inlineSourceMap": false,
     "listEmittedFiles": false,
     "listFiles": false,
+    "ignoreDeprecations": "6.0",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": true,
     "pretty": true,
