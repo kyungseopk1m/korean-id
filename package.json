@@ -65,9 +65,9 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.3",
-    "@types/jest": "^29.5.14",
+    "@types/jest": "^30.0.0",
     "@types/node": "^22.13.10",
-    "jest": "^29.7.0",
+    "jest": "^30.3.0",
     "publint": "^0.3.12",
     "ts-jest": "^29.2.6",
     "ts-node": "^10.9.2",
