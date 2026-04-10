@@ -22,11 +22,19 @@ describe('validateCRN', () => {
     it('체크섬 불일치', () => {
       const result = validateCRN('110111-0006248');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toMatch(/checksum/i);
     });
 
     it('숫자 외 문자 포함', () => {
       expect(validateCRN('11011a-0006246').success).toBe(false);
+    });
+
+    it('빈 문자열', () => {
+      const result = validateCRN('');
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.message).toBe('Input is required');
     });
   });
 });

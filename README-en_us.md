@@ -6,34 +6,34 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
-한국어 | [English](README-en_us.md)
+[한국어](README.md) | English
 
 ---
 
-한국 식별번호 8종을 검증하는 TypeScript 라이브러리입니다. 순수 연산만 사용하며 **zero dependency**입니다.
+A TypeScript library for validating 8 types of Korean identification numbers. Pure computation only — **zero dependency**.
 
-| 타입 | 함수 | 설명 |
-|------|------|------|
-| 사업자등록번호 (BRN) | `validateBRN` | 체크섬 + 세무서/업태/일련번호 검증 |
-| 주민등록번호 (RRN) | `validateRRN` | 체크섬 + 생년월일 + 성별/세기 검증 |
-| 법인등록번호 (CRN) | `validateCRN` | 체크섬 검증 |
-| 외국인등록번호 (FRN) | `validateFRN` | 체크섬 + 생년월일 + 외국인 코드 검증 |
-| 개인통관고유부호 (PCC) | `validatePCC` | P + 12자리 포맷 검증 |
-| 운전면허번호 (DLN) | `validateDLN` | 지역코드 + 포맷 검증 |
-| 여권번호 | `validatePassport` | 접두사(M/S/R/G/D) + 포맷 검증 |
-| 자동차등록번호 (VRN) | `validateVRN` | 포맷 + 한글 용도 문자 검증 (2019~ 현행 포맷) |
+| Type | Function | Description |
+|------|----------|-------------|
+| Business Registration Number (BRN) | `validateBRN` | Checksum + tax office/type/serial |
+| Resident Registration Number (RRN) | `validateRRN` | Checksum + birth date + gender/century |
+| Corporate Registration Number (CRN) | `validateCRN` | Checksum validation |
+| Foreigner Registration Number (FRN) | `validateFRN` | Checksum + birth date + foreigner code |
+| Personal Customs Code (PCC) | `validatePCC` | P + 12-digit format |
+| Driver's License Number (DLN) | `validateDLN` | Region code + format |
+| Passport Number | `validatePassport` | Prefix (M/S/R/G/D) + format |
+| Vehicle Registration Number (VRN) | `validateVRN` | Format + Korean usage character (post-2019 format only) |
 
-## 설치
+## Install
 
 ```bash
 npm i @kyungseopk1m/korean-id
 ```
 
-## 사용법
+## Usage
 
-### 통합 검증 — `validate()`
+### Unified validation — `validate()`
 
-타입을 몰라도 자동으로 감지하여 검증합니다.
+Auto-detects the ID type and validates in one call.
 
 ```typescript
 import { validate } from '@kyungseopk1m/korean-id';
@@ -48,7 +48,7 @@ validate('M12345678');
 // { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M' } } }
 ```
 
-### 개별 검증
+### Individual validators
 
 ```typescript
 import { validateBRN, validateRRN, validateCRN, validateFRN } from '@kyungseopk1m/korean-id';
@@ -61,6 +61,12 @@ validateBRN('000-00-00000');
 // { success: false, message: 'Invalid tax office code' }
 
 validateRRN('900101-1123459');
+// { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
+
+validateCRN('110111-0006249');
+// { success: true }
+
+validateFRN('900101-5123450');
 // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
 
 validatePCC('P123456789012');
@@ -76,50 +82,53 @@ validateVRN('123가4567');
 // { success: true, data: { usage: '자가용', char: '가' } }
 ```
 
-### 타입 가드
+### Type guards
 
 ```typescript
-import { isBRN, isRRN, isCRN, isFRN, isPCC, isDLN, isPassport, isVRN } from '@kyungseopk1m/korean-id';
+import { isBRN, isRRN, isDLN, isPassport, isVRN } from '@kyungseopk1m/korean-id';
 
-isBRN('119-81-10010')   // true
-isRRN('900101-1123459') // true
-isVRN('123가4567')       // true
+isBRN('119-81-10010')    // true
+isRRN('900101-1123459')  // true
+isVRN('123가4567')        // true
 ```
 
-### 포맷팅
+### Formatting
 
 ```typescript
 import { formatBRN, formatRRN, formatCRN, formatFRN, formatDLN, formatPCC, formatVRN } from '@kyungseopk1m/korean-id';
 
-formatBRN('1198110010')      // '119-81-10010'
-formatRRN('9001011123459')   // '900101-1123459'
-formatDLN('112212345678')    // '11-22-123456-78'
-formatPCC('p123456789012')   // 'P123456789012'
-formatVRN('123가 4567')       // '123가4567'
+formatBRN('1198110010')    // '119-81-10010'
+formatRRN('9001011123459') // '900101-1123459'
+formatCRN('1101110006249') // '110111-0006249'
+formatFRN('9001015234560') // '900101-5234560'
+formatDLN('112212345678')  // '11-22-123456-78'
+formatPCC('p123456789012') // 'P123456789012'
+formatVRN('123가 4567')    // '123가4567'
 ```
 
-### 마스킹
+### Masking
 
 ```typescript
 import { maskRRN, maskBRN, maskFRN, maskCRN, maskDLN, maskPCC, maskPassport, maskVRN } from '@kyungseopk1m/korean-id';
 
-maskRRN('900101-1123459')    // '900101-1******'
-maskBRN('119-81-10010')      // '119-81-***10'
-maskCRN('110111-0006249')    // '110111-***6249'
-maskDLN('11-22-123456-78')   // '11-22-******-78'
-maskPCC('P123456789012')     // 'P123456******'
-maskPassport('M12345678')    // 'M1234****'
-maskVRN('123가4567')          // '123가****'
+maskRRN('900101-1123459')   // '900101-1******'
+maskBRN('119-81-10010')     // '119-81-***10'
+maskFRN('900101-5234560')   // '900101-5******'
+maskCRN('110111-0006249')   // '110111-***6249'
+maskDLN('11-22-123456-78')  // '11-22-******-78'
+maskPCC('P123456789012')    // 'P123456******'
+maskPassport('M12345678')   // 'M1234****'
+maskVRN('123가4567')        // '123가****'
 ```
 
-### 상수
+### Constants
 
 ```typescript
 import { DLN_REGIONS, PASSPORT_TYPES, VRN_USAGE_CHARS } from '@kyungseopk1m/korean-id';
 
-DLN_REGIONS['11']          // '서울'
-PASSPORT_TYPES['M']        // '복수여권'
-VRN_USAGE_CHARS['렌터카']   // ['허', '하', '호']
+DLN_REGIONS['11']         // '서울' (Seoul)
+PASSPORT_TYPES['M']       // '복수여권' (Multiple-entry passport)
+VRN_USAGE_CHARS['렌터카']  // ['허', '하', '호']
 ```
 
 ## CLI
@@ -137,23 +146,22 @@ npx korean-id --json M12345678
 npx korean-id --help
 ```
 
-## 반환 타입
+## Return Types
 
 ```typescript
-// 성공 시 data 필수, 실패 시 message 필수 (discriminated union)
+// data is required on success, message is required on failure (discriminated union)
 type ValidateResult<T = undefined> =
-  | { success: true; data: T }   // T가 undefined면 data 없음 (CRN)
+  | { success: true; data: T }   // when T is undefined, no data field (CRN)
   | { success: false; message: string };
 
-// 사용 예
+// Usage
 const result = validateBRN('119-81-10010');
 if (result.success) {
-  result.data.officeCode  // 타입 안전하게 접근
+  result.data.officeCode  // type-safe access
 } else {
-  result.message          // 오류 메시지
+  result.message          // error message
 }
 
-// validate() 반환 타입
 type DetectResult =
   | { type: 'BRN'; result: ValidateResult<BRNData> }
   | { type: 'RRN'; result: ValidateResult<RRNData> }
@@ -166,10 +174,10 @@ type DetectResult =
   | { type: null; message: string };
 ```
 
-## 기여
+## Contributing
 
-[CONTRIBUTING.md](CONTRIBUTING.md)를 참고하세요.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 라이선스
+## License
 
 [MIT](LICENSE)

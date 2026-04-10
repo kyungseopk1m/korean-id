@@ -5,8 +5,9 @@ describe('validateBRN', () => {
     it('하이픈 포함 형식 검증', () => {
       const result = validateBRN('119-81-10010');
       expect(result.success).toBe(true);
-      expect(result.data?.officeCode).toBe('119');
-      expect(result.data?.typeCode).toBe('81');
+      if (!result.success) return;
+      expect(result.data.officeCode).toBe('119');
+      expect(result.data.typeCode).toBe('81');
     });
 
     it('하이픈 없는 형식 검증', () => {
@@ -24,24 +25,28 @@ describe('validateBRN', () => {
     it('세무서 코드 오류 (100 이하)', () => {
       const result = validateBRN('100-81-10788');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toMatch(/tax office/i);
     });
 
     it('업태 코드 00', () => {
       const result = validateBRN('119-00-10788');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toMatch(/business type/i);
     });
 
     it('일련번호 0000', () => {
       const result = validateBRN('119-81-00000');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toMatch(/serial/i);
     });
 
     it('체크섬 불일치', () => {
       const result = validateBRN('119-81-10011');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toMatch(/checksum/i);
     });
 
@@ -56,6 +61,7 @@ describe('validateBRN', () => {
     it('빈 문자열', () => {
       const result = validateBRN('');
       expect(result.success).toBe(false);
+      if (result.success) return;
       expect(result.message).toBe('Input is required');
     });
   });

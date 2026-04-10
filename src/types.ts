@@ -1,5 +1,3 @@
-export interface ValidateResult<T = undefined> {
-  success: boolean;
-  data?: T;
-  message?: string;
-}
+export type ValidateResult<T = undefined> = [T] extends [undefined]
+  ? { success: true } | { success: false; message: string }
+  : { success: true; data: T } | { success: false; message: string };

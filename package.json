@@ -1,7 +1,7 @@
 {
   "name": "@kyungseopk1m/korean-id",
-  "version": "1.0.0",
-  "description": "한국 식별번호 통합 검증 라이브러리 (BRN/RRN/CRN/FRN)",
+  "version": "1.1.0",
+  "description": "한국 식별번호 통합 검증 라이브러리 (BRN/RRN/CRN/FRN/PCC/DLN/Passport/VRN)",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
   "types": "dist/mjs/index.d.ts",
@@ -32,10 +32,18 @@
     "주민등록번호",
     "법인등록번호",
     "외국인등록번호",
+    "개인통관고유부호",
+    "운전면허번호",
+    "여권번호",
+    "자동차등록번호",
     "BRN",
     "RRN",
     "CRN",
     "FRN",
+    "PCC",
+    "DLN",
+    "passport",
+    "VRN",
     "korean",
     "korea",
     "validation",
@@ -65,7 +73,11 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },
+  "bin": {
+    "korean-id": "bin/korean-id.js"
+  },
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ]
 }
