@@ -1,6 +1,6 @@
 {
   "name": "korean-id",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "한국 식별번호 통합 검증 라이브러리 (BRN/RRN/CRN/FRN/PCC/DLN/Passport/VRN)",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
