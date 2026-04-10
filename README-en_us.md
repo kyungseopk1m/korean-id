@@ -1,8 +1,8 @@
 # korean-id
 
-[![npm version](https://img.shields.io/npm/v/@kyungseopk1m/korean-id)](https://www.npmjs.com/package/@kyungseopk1m/korean-id)
-[![npm downloads](https://img.shields.io/npm/dm/@kyungseopk1m/korean-id)](https://www.npmjs.com/package/@kyungseopk1m/korean-id)
-[![license](https://img.shields.io/npm/l/@kyungseopk1m/korean-id)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/korean-id)](https://www.npmjs.com/package/korean-id)
+[![npm downloads](https://img.shields.io/npm/dm/korean-id)](https://www.npmjs.com/package/korean-id)
+[![license](https://img.shields.io/npm/l/korean-id)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
@@ -26,7 +26,7 @@ A TypeScript library for validating 8 types of Korean identification numbers. Pu
 ## Install
 
 ```bash
-npm i @kyungseopk1m/korean-id
+npm i korean-id
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ npm i @kyungseopk1m/korean-id
 Auto-detects the ID type and validates in one call.
 
 ```typescript
-import { validate } from '@kyungseopk1m/korean-id';
+import { validate } from 'korean-id';
 
 validate('119-81-10010');
 // { type: 'BRN', result: { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } } }
@@ -51,8 +51,8 @@ validate('M12345678');
 ### Individual validators
 
 ```typescript
-import { validateBRN, validateRRN, validateCRN, validateFRN } from '@kyungseopk1m/korean-id';
-import { validatePCC, validateDLN, validatePassport, validateVRN } from '@kyungseopk1m/korean-id';
+import { validateBRN, validateRRN, validateCRN, validateFRN } from 'korean-id';
+import { validatePCC, validateDLN, validatePassport, validateVRN } from 'korean-id';
 
 validateBRN('119-81-10010');
 // { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } }
@@ -85,7 +85,7 @@ validateVRN('123가4567');
 ### Type guards
 
 ```typescript
-import { isBRN, isRRN, isDLN, isPassport, isVRN } from '@kyungseopk1m/korean-id';
+import { isBRN, isRRN, isDLN, isPassport, isVRN } from 'korean-id';
 
 isBRN('119-81-10010')    // true
 isRRN('900101-1123459')  // true
@@ -95,7 +95,7 @@ isVRN('123가4567')        // true
 ### Formatting
 
 ```typescript
-import { formatBRN, formatRRN, formatCRN, formatFRN, formatDLN, formatPCC, formatVRN } from '@kyungseopk1m/korean-id';
+import { formatBRN, formatRRN, formatCRN, formatFRN, formatDLN, formatPCC, formatVRN } from 'korean-id';
 
 formatBRN('1198110010')    // '119-81-10010'
 formatRRN('9001011123459') // '900101-1123459'
@@ -109,7 +109,7 @@ formatVRN('123가 4567')    // '123가4567'
 ### Masking
 
 ```typescript
-import { maskRRN, maskBRN, maskFRN, maskCRN, maskDLN, maskPCC, maskPassport, maskVRN } from '@kyungseopk1m/korean-id';
+import { maskRRN, maskBRN, maskFRN, maskCRN, maskDLN, maskPCC, maskPassport, maskVRN } from 'korean-id';
 
 maskRRN('900101-1123459')   // '900101-1******'
 maskBRN('119-81-10010')     // '119-81-***10'
@@ -124,7 +124,7 @@ maskVRN('123가4567')        // '123가****'
 ### Constants
 
 ```typescript
-import { DLN_REGIONS, PASSPORT_TYPES, VRN_USAGE_CHARS } from '@kyungseopk1m/korean-id';
+import { DLN_REGIONS, PASSPORT_TYPES, VRN_USAGE_CHARS } from 'korean-id';
 
 DLN_REGIONS['11']         // '서울' (Seoul)
 PASSPORT_TYPES['M']       // '복수여권' (Multiple-entry passport)
