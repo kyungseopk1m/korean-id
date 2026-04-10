@@ -3,4 +3,3 @@ dist/
 coverage/
 *.js.map
 .DS_Store
-.omc
