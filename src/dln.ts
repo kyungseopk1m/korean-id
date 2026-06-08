@@ -31,7 +31,8 @@ export interface DLNData {
 /**
  * @name validateDLN
  * @description
- * 운전면허번호(DLN)를 검증합니다. 지역코드 유효성 및 포맷 검증을 수행합니다.
+ * 운전면허번호(DLN)를 검증합니다. 자릿수·지역코드·포맷만 검증하며, 체크섬은 검증하지 않습니다
+ * (운전면허번호 검증 알고리즘은 공개되어 있지 않음). 실제 발급 여부는 도로교통공단 등 공식 확인이 필요합니다.
  * 하이픈 포함(XX-XX-XXXXXX-XX) 및 미포함(XXXXXXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateDLN('11-22-123456-78') // { success: true, data: { region: '서울', regionCode: '11' } }

@@ -3,7 +3,7 @@ import { validateFRN } from '../src/frn';
 describe('validateFRN', () => {
   describe('유효한 외국인등록번호', () => {
     it('1900년대 남성 외국인 (코드 5)', () => {
-      const result = validateFRN('900101-5123450');
+      const result = validateFRN('900101-5123452');
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data.gender).toBe('male');
@@ -12,7 +12,7 @@ describe('validateFRN', () => {
     });
 
     it('1900년대 여성 외국인 (코드 6)', () => {
-      const result = validateFRN('900101-6123452');
+      const result = validateFRN('900101-6123454');
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data.gender).toBe('female');
@@ -20,7 +20,7 @@ describe('validateFRN', () => {
     });
 
     it('2000년대 남성 외국인 (코드 7)', () => {
-      const result = validateFRN('010101-7123459');
+      const result = validateFRN('010101-7123451');
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data.gender).toBe('male');
@@ -28,7 +28,7 @@ describe('validateFRN', () => {
     });
 
     it('2000년대 여성 외국인 (코드 8)', () => {
-      const result = validateFRN('010101-8123451');
+      const result = validateFRN('010101-8123453');
       expect(result.success).toBe(true);
       if (!result.success) return;
       expect(result.data.gender).toBe('female');
@@ -37,7 +37,7 @@ describe('validateFRN', () => {
     });
 
     it('하이픈 없는 형식', () => {
-      const result = validateFRN('9001015123450');
+      const result = validateFRN('9001015123452');
       expect(result.success).toBe(true);
     });
   });
@@ -70,6 +70,14 @@ describe('validateFRN', () => {
 
     it('체크섬 불일치', () => {
       const result = validateFRN('900101-5123451');
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.message).toMatch(/checksum/i);
+    });
+
+    it('RRN식 체크디지트(+2 보정 없음)는 실패 — 정부 표준 체크섬 회귀', () => {
+      // 900101-5123450 은 RRN 알고리즘으로는 유효하지만 FRN(+2 보정)에서는 무효
+      const result = validateFRN('900101-5123450');
       expect(result.success).toBe(false);
       if (result.success) return;
       expect(result.message).toMatch(/checksum/i);

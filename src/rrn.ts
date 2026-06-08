@@ -41,9 +41,9 @@ export function validateRRN(value: string): ValidateResult<RRNData> {
   const info = GENDER_MAP[genderCode];
   if (!info) return { success: false, message: 'Invalid gender/century code' };
 
-  const yy = parseInt(d.slice(0, 2));
-  const mm = parseInt(d.slice(2, 4));
-  const dd = parseInt(d.slice(4, 6));
+  const yy = parseInt(d.slice(0, 2), 10);
+  const mm = parseInt(d.slice(2, 4), 10);
+  const dd = parseInt(d.slice(4, 6), 10);
   const fullYear = CENTURY_OFFSET[info.century] + yy;
 
   if (!isValidDate(fullYear, mm, dd)) {

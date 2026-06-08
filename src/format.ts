@@ -148,15 +148,15 @@ export function maskCRN(value: string): string | null {
 
 /**
  * @name formatVRN
- * @description 자동차등록번호에서 공백을 제거하여 정규화합니다. 포맷 검증이 필요하면 validateVRN을 먼저 호출하세요.
+ * @description 자동차등록번호에서 공백을 제거하여 정규화합니다. 현행(2019~)/구형(2006~2018) 포맷 모두 지원합니다. 포맷 검증이 필요하면 validateVRN을 먼저 호출하세요.
  * @example
  * formatVRN('123가 4567') // '123가4567'
- * formatVRN('123가4567')  // '123가4567'
+ * formatVRN('12가 3456')  // '12가3456'
  */
 export function formatVRN(value: string): string | null {
   const trimmed = value.trim().replace(/\s/g, '');
-  // 3자리숫자 + 한글1자 + 4자리숫자
-  if (!/^\d{3}[가-힣]\d{4}$/.test(trimmed)) return null;
+  // 현행(3자리) 또는 구형(2자리) + 한글1자 + 4자리숫자
+  if (!/^\d{2,3}[가-힣]\d{4}$/.test(trimmed)) return null;
   return trimmed;
 }
 
@@ -165,11 +165,12 @@ export function formatVRN(value: string): string | null {
  * @description 자동차등록번호 뒤 4자리를 마스킹합니다.
  * @example
  * maskVRN('123가4567') // '123가****'
+ * maskVRN('12가3456')  // '12가****'
  */
 export function maskVRN(value: string): string | null {
   const formatted = formatVRN(value);
   if (!formatted) return null;
-  return `${formatted.slice(0, 4)}${'*'.repeat(4)}`;
+  return `${formatted.slice(0, -4)}${'*'.repeat(4)}`;
 }
 
 /**

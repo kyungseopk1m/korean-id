@@ -140,8 +140,12 @@ describe('formatVRN', () => {
   it('포맷은 맞지만 유효하지 않은 용도 문자 — null 아님 (validateVRN으로 검증)', () => {
     expect(formatVRN('123힣4567')).toBe('123힣4567');
   });
+  it('구형(2자리) 포맷도 정규화', () => {
+    expect(formatVRN('12가 3456')).toBe('12가3456');
+  });
   it('자릿수 오류 → null', () => {
-    expect(formatVRN('12가4567')).toBeNull();
+    expect(formatVRN('1가4567')).toBeNull();
+    expect(formatVRN('1234가4567')).toBeNull();
   });
 });
 
@@ -149,11 +153,17 @@ describe('maskVRN', () => {
   it('뒤 4자리 마스킹', () => {
     expect(maskVRN('123가4567')).toBe('123가****');
   });
+  it('구형(2자리) 포맷도 뒤 4자리 마스킹', () => {
+    expect(maskVRN('12가3456')).toBe('12가****');
+  });
   it('공백 포함 입력도 처리', () => {
     expect(maskVRN('123가 4567')).toBe('123가****');
   });
+  it('구형 + 공백 포함도 처리', () => {
+    expect(maskVRN('12가 3456')).toBe('12가****');
+  });
   it('포맷 자체가 잘못된 경우 → null', () => {
-    expect(maskVRN('12가4567')).toBeNull();
+    expect(maskVRN('1가4567')).toBeNull();
   });
 });
 

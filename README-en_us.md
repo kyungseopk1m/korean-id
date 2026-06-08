@@ -4,6 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/korean-id)](https://www.npmjs.com/package/korean-id)
 [![license](https://img.shields.io/npm/l/korean-id)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/korean-id)](https://bundlephobia.com/package/korean-id)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
 [한국어](README.md) | English
@@ -19,9 +20,9 @@ A TypeScript library for validating 8 types of Korean identification numbers. Pu
 | Corporate Registration Number (CRN) | `validateCRN` | Checksum validation |
 | Foreigner Registration Number (FRN) | `validateFRN` | Checksum + birth date + foreigner code |
 | Personal Customs Code (PCC) | `validatePCC` | P + 12-digit format |
-| Driver's License Number (DLN) | `validateDLN` | Region code + format |
+| Driver's License Number (DLN) | `validateDLN` | Region code + format (no checksum) |
 | Passport Number | `validatePassport` | Prefix (M/S/R/G/D) + format |
-| Vehicle Registration Number (VRN) | `validateVRN` | Format + Korean usage character (post-2019 format only) |
+| Vehicle Registration Number (VRN) | `validateVRN` | Format + Korean usage character (current 2019~ / legacy 2006~2018) |
 
 ## Install
 
@@ -42,7 +43,7 @@ validate('119-81-10010');
 // { type: 'BRN', result: { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } } }
 
 validate('123가4567');
-// { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가' } } }
+// { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가', format: 'current' } } }
 
 validate('M12345678');
 // { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M' } } }
@@ -66,7 +67,7 @@ validateRRN('900101-1123459');
 validateCRN('110111-0006249');
 // { success: true }
 
-validateFRN('900101-5123450');
+validateFRN('900101-5123452');
 // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
 
 validatePCC('P123456789012');
@@ -79,7 +80,10 @@ validatePassport('M12345678');
 // { success: true, data: { type: '복수여권', prefix: 'M' } }
 
 validateVRN('123가4567');
-// { success: true, data: { usage: '자가용', char: '가' } }
+// { success: true, data: { usage: '자가용', char: '가', format: 'current' } }
+
+validateVRN('12가3456'); // legacy format
+// { success: true, data: { usage: '자가용', char: '가', format: 'legacy' } }
 ```
 
 ### Type guards

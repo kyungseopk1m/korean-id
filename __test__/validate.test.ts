@@ -19,7 +19,7 @@ describe('validate — 타입 자동 감지', () => {
 
   describe('FRN (13자리, 외국인 코드 5-8)', () => {
     it('유효한 외국인등록번호 (코드 5)', () => {
-      expect(validate('900101-5123450')).toMatchObject({ type: 'FRN', result: { success: true } });
+      expect(validate('900101-5123452')).toMatchObject({ type: 'FRN', result: { success: true } });
     });
   });
 
@@ -58,6 +58,12 @@ describe('validate — 타입 자동 감지', () => {
   describe('VRN (한글 포함)', () => {
     it('유효한 자동차등록번호', () => {
       expect(validate('123가4567')).toMatchObject({ type: 'VRN', result: { success: true } });
+    });
+    it('구형 포맷 자동감지', () => {
+      expect(validate('12가3456')).toMatchObject({
+        type: 'VRN',
+        result: { success: true, data: { format: 'legacy' } },
+      });
     });
   });
 

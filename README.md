@@ -4,6 +4,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/korean-id)](https://www.npmjs.com/package/korean-id)
 [![license](https://img.shields.io/npm/l/korean-id)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
+[![minzipped size](https://img.shields.io/bundlephobia/minzip/korean-id)](https://bundlephobia.com/package/korean-id)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
 한국어 | [English](README-en_us.md)
@@ -19,9 +20,9 @@
 | 법인등록번호 (CRN) | `validateCRN` | 체크섬 검증 |
 | 외국인등록번호 (FRN) | `validateFRN` | 체크섬 + 생년월일 + 외국인 코드 검증 |
 | 개인통관고유부호 (PCC) | `validatePCC` | P + 12자리 포맷 검증 |
-| 운전면허번호 (DLN) | `validateDLN` | 지역코드 + 포맷 검증 |
+| 운전면허번호 (DLN) | `validateDLN` | 지역코드 + 포맷 검증 (체크섬 미검증) |
 | 여권번호 | `validatePassport` | 접두사(M/S/R/G/D) + 포맷 검증 |
-| 자동차등록번호 (VRN) | `validateVRN` | 포맷 + 한글 용도 문자 검증 (2019~ 현행 포맷) |
+| 자동차등록번호 (VRN) | `validateVRN` | 포맷 + 한글 용도 문자 검증 (현행 2019~ / 구형 2006~2018) |
 
 ## 설치
 
@@ -42,7 +43,7 @@ validate('119-81-10010');
 // { type: 'BRN', result: { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } } }
 
 validate('123가4567');
-// { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가' } } }
+// { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가', format: 'current' } } }
 
 validate('M12345678');
 // { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M' } } }
@@ -63,6 +64,12 @@ validateBRN('000-00-00000');
 validateRRN('900101-1123459');
 // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
 
+validateCRN('110111-0006249');
+// { success: true }
+
+validateFRN('900101-5123452');
+// { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
+
 validatePCC('P123456789012');
 // { success: true, data: { number: '123456789012' } }
 
@@ -73,7 +80,10 @@ validatePassport('M12345678');
 // { success: true, data: { type: '복수여권', prefix: 'M' } }
 
 validateVRN('123가4567');
-// { success: true, data: { usage: '자가용', char: '가' } }
+// { success: true, data: { usage: '자가용', char: '가', format: 'current' } }
+
+validateVRN('12가3456'); // 구형 포맷
+// { success: true, data: { usage: '자가용', char: '가', format: 'legacy' } }
 ```
 
 ### 타입 가드

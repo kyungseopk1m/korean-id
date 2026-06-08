@@ -19,7 +19,7 @@ export { validatePassport, PASSPORT_TYPES } from './passport.js';
 export type { PassportData } from './passport.js';
 
 export { validateVRN, VRN_USAGE_CHARS } from './vrn.js';
-export type { VRNData, VRNUsage } from './vrn.js';
+export type { VRNData, VRNUsage, VRNFormat } from './vrn.js';
 
 export { formatBRN, formatRRN, formatCRN, formatFRN, maskRRN, maskBRN, maskFRN, formatDLN, maskDLN, formatPCC, maskPCC, maskCRN, maskPassport, formatVRN, maskVRN } from './format.js';
 

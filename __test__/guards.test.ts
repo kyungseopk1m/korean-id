@@ -17,8 +17,8 @@ describe('타입 가드', () => {
   });
 
   it('isFRN', () => {
-    expect(isFRN('900101-5123450')).toBe(true);
-    expect(isFRN('900101-5123451')).toBe(false);
+    expect(isFRN('900101-5123452')).toBe(true);
+    expect(isFRN('900101-5123450')).toBe(false);
   });
 
   it('isPCC', () => {
@@ -38,6 +38,7 @@ describe('타입 가드', () => {
 
   it('isVRN', () => {
     expect(isVRN('123가4567')).toBe(true);
+    expect(isVRN('12가3456')).toBe(true); // 구형 포맷
     expect(isVRN('123힣4567')).toBe(false);
   });
 });

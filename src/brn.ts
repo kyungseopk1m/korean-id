@@ -27,7 +27,7 @@ export function validateBRN(value: string): ValidateResult<BRNData> {
   const typeCode = d.slice(3, 5);
   const serial = d.slice(5, 9);
 
-  if (parseInt(officeCode) < 101) {
+  if (parseInt(officeCode, 10) < 101) {
     return { success: false, message: 'Invalid tax office code' };
   }
   if (typeCode === '00') {
