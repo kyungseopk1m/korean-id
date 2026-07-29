@@ -4,7 +4,6 @@
 [![npm downloads](https://img.shields.io/npm/dm/korean-id)](https://www.npmjs.com/package/korean-id)
 [![license](https://img.shields.io/npm/l/korean-id)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
-[![minzipped size](https://img.shields.io/bundlephobia/minzip/korean-id)](https://bundlephobia.com/package/korean-id)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
 [한국어](README.md) | English
@@ -16,12 +15,12 @@ A TypeScript library for validating 8 types of Korean identification numbers. Pu
 | Type | Function | Description |
 |------|----------|-------------|
 | Business Registration Number (BRN) | `validateBRN` | Checksum + tax office/type/serial |
-| Resident Registration Number (RRN) | `validateRRN` | Checksum + birth date + gender/century |
+| Resident Registration Number (RRN) | `validateRRN` | Checksum + birth date + gender/century (checksum skippable with `{ checksum: false }`) |
 | Corporate Registration Number (CRN) | `validateCRN` | Checksum validation |
 | Foreigner Registration Number (FRN) | `validateFRN` | Checksum + birth date + foreigner code |
 | Personal Customs Code (PCC) | `validatePCC` | P + 12-digit format |
 | Driver's License Number (DLN) | `validateDLN` | Region code + format (no checksum) |
-| Passport Number | `validatePassport` | Prefix (M/S/R/G/D) + format |
+| Passport Number | `validatePassport` | Prefix (M/S/R/O/D, plus G for backward compatibility) + format (legacy `M12345678` / current `M123A4567`) |
 | Vehicle Registration Number (VRN) | `validateVRN` | Format + Korean usage character (current 2019~ / legacy 2006~2018) |
 
 ## Install
@@ -46,7 +45,7 @@ validate('123가4567');
 // { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가', format: 'current' } } }
 
 validate('M12345678');
-// { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M' } } }
+// { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M', format: 'legacy' } } }
 ```
 
 ### Individual validators
@@ -76,8 +75,11 @@ validatePCC('P123456789012');
 validateDLN('11-22-123456-78');
 // { success: true, data: { region: '서울', regionCode: '11' } }
 
-validatePassport('M12345678');
-// { success: true, data: { type: '복수여권', prefix: 'M' } }
+validatePassport('M12345678');       // legacy
+// { success: true, data: { type: '복수여권', prefix: 'M', format: 'legacy' } }
+
+validatePassport('M123A4567');       // current e-passport (2021-12 onward)
+// { success: true, data: { type: '복수여권', prefix: 'M', format: 'current' } }
 
 validateVRN('123가4567');
 // { success: true, data: { usage: '자가용', char: '가', format: 'current' } }
@@ -85,6 +87,26 @@ validateVRN('123가4567');
 validateVRN('12가3456'); // legacy format
 // { success: true, data: { usage: '자가용', char: '가', format: 'legacy' } }
 ```
+
+### Checksum option (RRN/FRN)
+
+`validateRRN` and `validateFRN` verify the checksum by default, the same as before.
+
+The 2020-10-05 reform (Resident Registration Act Enforcement Rule No. 204) made the trailing part of newly issued or changed resident registration numbers a single gender digit plus six random digits, removing the check-digit position. Pass `{ checksum: false }` to skip only the checksum for such numbers.
+
+```typescript
+validateRRN('900101-1123450');
+// { success: false, message: 'Invalid checksum' }
+
+validateRRN('900101-1123450', { checksum: false });
+// { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
+
+// Only the checksum is skipped. Birth date and gender code are still validated.
+validateRRN('901301-1123450', { checksum: false });
+// { success: false, message: 'Invalid birth date' }
+```
+
+Pre-reform numbers still satisfy the checksum, so verification remains the default. The default will flip in the next major release.
 
 ### Type guards
 
@@ -132,8 +154,11 @@ import { DLN_REGIONS, PASSPORT_TYPES, VRN_USAGE_CHARS } from 'korean-id';
 
 DLN_REGIONS['11']         // '서울' (Seoul)
 PASSPORT_TYPES['M']       // '복수여권' (Multiple-entry passport)
+PASSPORT_TYPES['O']       // '관용여권' (Official passport)
 VRN_USAGE_CHARS['렌터카']  // ['허', '하', '호']
 ```
+
+Several public sources record `O` (Official) as the official-passport prefix, but no primary government text was obtained. The previously used `G` has no source we could find; it is kept for backward compatibility and will be removed in the next major release. Use `O` in new code.
 
 ## CLI
 
@@ -145,7 +170,7 @@ npx korean-id 119-81-10010
 #   serialNumber: 10010
 
 npx korean-id --json M12345678
-# {"type":"PASSPORT","result":{"success":true,"data":{"type":"복수여권","prefix":"M"}}}
+# {"type":"PASSPORT","result":{"success":true,"data":{"type":"복수여권","prefix":"M","format":"legacy"}}}
 
 npx korean-id --help
 ```

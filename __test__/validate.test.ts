@@ -108,6 +108,20 @@ describe('validate — 타입 자동 감지', () => {
     });
   });
 
+  describe('여권 접두사 감지 (v1.4.0)', () => {
+    it('관용여권 O도 PASSPORT로 감지', () => {
+      expect(validate('O12345678')).toMatchObject({ type: 'PASSPORT', result: { success: true } });
+    });
+
+    it('G도 계속 감지 (하위호환)', () => {
+      expect(validate('G12345678')).toMatchObject({ type: 'PASSPORT', result: { success: true } });
+    });
+
+    it('차세대 형식도 PASSPORT로 감지', () => {
+      expect(validate('M123A4567')).toMatchObject({ type: 'PASSPORT', result: { success: true } });
+    });
+  });
+
   describe('감지 실패', () => {
     it('빈 문자열', () => {
       expect(validate('')).toMatchObject({ type: null });

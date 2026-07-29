@@ -2,6 +2,10 @@ import { digitsOnly } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 export interface BRNData {
+  /**
+   * 앞 3자리. 과거에는 관할 세무서 코드였으나 현재는 신규 개업자에게 101~999를 순차 부여하는
+   * 일련번호코드라, 값이 특정 세무서를 가리킨다고 보장할 수 없다. 필드명은 하위호환을 위해 유지.
+   */
   officeCode: string;
   typeCode: string;
   /** 일련번호 + 검증번호 (5자리) */
@@ -11,7 +15,8 @@ export interface BRNData {
 /**
  * @name validateBRN
  * @description
- * 사업자등록번호(BRN)를 검증합니다. 체크섬 알고리즘 및 세무서 코드, 업태 코드, 일련번호 유효성을 검증합니다.
+ * 사업자등록번호(BRN)를 검증합니다. 체크섬 알고리즘 및 앞 3자리 코드, 업태 코드, 일련번호 유효성을 검증합니다.
+ * 앞 3자리는 101~999만 유효합니다(국민신문고 사업자등록번호 부여체계: "신규개업자에게 사용 가능한 번호 101-999를 순차적으로 부여").
  * 하이픈 포함(XXX-XX-XXXXX) 및 미포함(XXXXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateBRN('119-81-10010') // { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } }

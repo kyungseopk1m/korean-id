@@ -94,4 +94,32 @@ describe('validateRRN', () => {
       expect(validateRRN('9a0101-1234567').success).toBe(false);
     });
   });
+
+  // 2020-10-05 개편으로 신규 부여·변경 번호는 뒷자리가 성별 1자리 + 임의번호 6자리가 되어
+  // 검증번호 자리가 사라졌다. 기본값은 기존과 같은 검증이고, 필요할 때만 건너뛴다.
+  describe('체크섬 옵션', () => {
+    it('옵션 생략 시 기존 동작 유지 (체크섬 검증)', () => {
+      expect(validateRRN('900101-1123459').success).toBe(true);
+      expect(validateRRN('900101-1123450').success).toBe(false);
+    });
+
+    it('{ checksum: true }를 명시해도 동일', () => {
+      expect(validateRRN('900101-1123459', { checksum: true }).success).toBe(true);
+      expect(validateRRN('900101-1123450', { checksum: true }).success).toBe(false);
+    });
+
+    it('{ checksum: false }면 체크섬 불일치도 통과 (2020-10 이후 발급분)', () => {
+      const result = validateRRN('900101-1123450', { checksum: false });
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.birthDate).toBe('1990-01-01');
+      expect(result.data.gender).toBe('male');
+    });
+
+    it('{ checksum: false }여도 생년월일·성별코드는 계속 검증', () => {
+      expect(validateRRN('901301-1123450', { checksum: false }).success).toBe(false);
+      expect(validateRRN('900230-1123450', { checksum: false }).success).toBe(false);
+      expect(validateRRN('900101-5123450', { checksum: false }).success).toBe(false);
+    });
+  });
 });

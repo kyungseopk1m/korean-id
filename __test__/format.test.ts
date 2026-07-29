@@ -180,4 +180,18 @@ describe('maskPassport', () => {
   it('잘못된 자릿수 → null', () => {
     expect(maskPassport('M1234567')).toBeNull();
   });
+  it('차세대 형식(2021-12~)도 뒤 4자리 마스킹', () => {
+    expect(maskPassport('M123A4567')).toBe('M123A****');
+    expect(maskPassport('m123a4567')).toBe('M123A****');
+  });
+  it('관용여권 접두사 O도 처리', () => {
+    expect(maskPassport('O12345678')).toBe('O1234****');
+  });
+  it('G는 하위호환으로 계속 처리 (다음 major에서 제거 예정)', () => {
+    expect(maskPassport('G12345678')).toBe('G1234****');
+  });
+  it('차세대 형식이 아닌 영숫자 혼합 → null', () => {
+    expect(maskPassport('MABCDEFGH')).toBeNull();
+    expect(maskPassport('M1234A567')).toBeNull();
+  });
 });

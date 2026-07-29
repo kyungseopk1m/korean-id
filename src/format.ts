@@ -173,16 +173,20 @@ export function maskVRN(value: string): string | null {
   return `${formatted.slice(0, -4)}${'*'.repeat(4)}`;
 }
 
+// 구형(숫자 8자리) 또는 차세대(숫자3 + 영문1 + 숫자4) 본문
+const PASSPORT_BODY = /^(?:\d{8}|\d{3}[A-Z]\d{4})$/;
+
 /**
  * @name maskPassport
- * @description 여권번호 중간 4자리를 마스킹합니다.
+ * @description 여권번호 뒤 4자리를 마스킹합니다. 구형(M12345678)·차세대(M123A4567) 형식 모두 지원합니다.
  * @example
  * maskPassport('M12345678') // 'M1234****'
+ * maskPassport('M123A4567') // 'M123A****'
  */
 export function maskPassport(value: string): string | null {
   const trimmed = value.trim().toUpperCase();
   if (trimmed.length !== 9) return null;
-  if (!['M', 'S', 'R', 'G', 'D'].includes(trimmed[0])) return null;
-  if (!/^\d{8}$/.test(trimmed.slice(1))) return null;
+  if (!['M', 'S', 'R', 'O', 'G', 'D'].includes(trimmed[0])) return null;
+  if (!PASSPORT_BODY.test(trimmed.slice(1))) return null;
   return `${trimmed.slice(0, 5)}${'*'.repeat(4)}`;
 }
