@@ -1,5 +1,5 @@
 import { digitsOnly, isValidDate } from './_internal/utils.js';
-import type { ValidateResult } from './types.js';
+import type { ValidateResult, ChecksumOptions } from './types.js';
 
 export interface FRNData {
   birthDate: string;
@@ -17,16 +17,23 @@ const GENDER_MAP: Record<string, { gender: 'male' | 'female'; century: '1900s' |
 /**
  * @name validateFRN
  * @description
- * 외국인등록번호(FRN)를 검증합니다. 7번째 자리가 외국인 코드(5,6,7,8)인지 확인하고 체크섬을 검증합니다.
- * 체크섬은 RRN식 체크디지트에 +2(mod 10) 보정을 더한 값입니다.
- * (전자정부 표준 EgovNumberCheckUtil.checkForeignNumber는 보수 가중치 [9,8,7,6,5,4,3,2,9,8,7,6]를
- *  쓰지만, RRN 가중치 [2,3,4,5,6,7,8,9,2,3,4,5] 기반 식과 mod 11에서 수학적으로 동치이다.)
+ * 외국인등록번호(FRN)를 검증합니다. 7번째 자리가 외국인 코드(5,6,7,8)인지, 생년월일, 체크섬을 검증합니다.
+ *
+ * 체크섬은 RRN 방식 체크디지트에 +2(mod 10) 보정을 더한 값으로, 전자정부 표준
+ * EgovNumberCheckUtil.checkForeignNumber와 동치입니다.
+ *
+ * 검증번호가 없는 번호를 다뤄야 한다면 `{ checksum: false }`로 체크섬을 건너뛸 수 있습니다.
+ * 주민등록번호와 달리 외국인등록번호의 검증번호가 폐지되었다는 1차 근거는 확인되지 않았습니다.
+ * 출입국관리법 시행령 제40조의3은 세부 체계를 법무부장관에게 위임할 뿐 체크디지트 폐지를
+ * 규정하지 않으므로, 기본값은 계속 검증입니다.
  * 하이픈 포함(YYMMDD-XXXXXXX) 및 미포함(YYMMDDXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateFRN('900101-5123452') // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
  * validateFRN('900101-1123459') // { success: false, message: 'Invalid gender/century code for foreigner' }
+ * validateFRN('900101-5123451') // { success: false, message: 'Invalid checksum' }
+ * validateFRN('900101-5123451', { checksum: false }) // { success: true, ... }
  */
-export function validateFRN(value: string): ValidateResult<FRNData> {
+export function validateFRN(value: string, options: ChecksumOptions = {}): ValidateResult<FRNData> {
   if (!value.trim()) return { success: false, message: 'Input is required' };
   const d = digitsOnly(value);
   if (!d) return { success: false, message: 'Non-numeric characters found' };
@@ -45,14 +52,15 @@ export function validateFRN(value: string): ValidateResult<FRNData> {
     return { success: false, message: 'Invalid birth date' };
   }
 
-  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
-  const digits = d.split('').map(Number);
-  const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
-  // FRN 검증번호 = RRN 방식 체크디지트에 +2(mod 10) 보정 (전자정부 표준 EgovNumberCheckUtil)
-  const checkDigit = (((11 - (sum % 11)) % 10) + 2) % 10;
-
-  if (checkDigit !== digits[12]) {
-    return { success: false, message: 'Invalid checksum' };
+  if (options.checksum ?? true) {
+    const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+    const digits = d.split('').map(Number);
+    const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
+    // FRN 검증번호 = RRN 방식 체크디지트에 +2(mod 10) 보정 (전자정부 표준 EgovNumberCheckUtil)
+    const checkDigit = (((11 - (sum % 11)) % 10) + 2) % 10;
+    if (checkDigit !== digits[12]) {
+      return { success: false, message: 'Invalid checksum' };
+    }
   }
 
   const month = String(mm).padStart(2, '0');

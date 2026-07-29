@@ -4,7 +4,6 @@
 [![npm downloads](https://img.shields.io/npm/dm/korean-id)](https://www.npmjs.com/package/korean-id)
 [![license](https://img.shields.io/npm/l/korean-id)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-supported-blue)](https://www.typescriptlang.org/)
-[![minzipped size](https://img.shields.io/bundlephobia/minzip/korean-id)](https://bundlephobia.com/package/korean-id)
 [![CodeQL](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml/badge.svg)](https://github.com/kyungseopk1m/korean-id/actions/workflows/codeql.yml)
 
 한국어 | [English](README-en_us.md)
@@ -16,12 +15,12 @@
 | 타입 | 함수 | 설명 |
 |------|------|------|
 | 사업자등록번호 (BRN) | `validateBRN` | 체크섬 + 세무서/업태/일련번호 검증 |
-| 주민등록번호 (RRN) | `validateRRN` | 체크섬 + 생년월일 + 성별/세기 검증 |
+| 주민등록번호 (RRN) | `validateRRN` | 체크섬 + 생년월일 + 성별/세기 검증 (체크섬은 `{ checksum: false }`로 생략 가능) |
 | 법인등록번호 (CRN) | `validateCRN` | 체크섬 검증 |
 | 외국인등록번호 (FRN) | `validateFRN` | 체크섬 + 생년월일 + 외국인 코드 검증 |
 | 개인통관고유부호 (PCC) | `validatePCC` | P + 12자리 포맷 검증 |
 | 운전면허번호 (DLN) | `validateDLN` | 지역코드 + 포맷 검증 (체크섬 미검증) |
-| 여권번호 | `validatePassport` | 접두사(M/S/R/G/D) + 포맷 검증 |
+| 여권번호 | `validatePassport` | 접두사(M/S/R/O/D, 하위호환 G) + 포맷 검증 (구형 `M12345678` / 차세대 `M123A4567`) |
 | 자동차등록번호 (VRN) | `validateVRN` | 포맷 + 한글 용도 문자 검증 (현행 2019~ / 구형 2006~2018) |
 
 ## 설치
@@ -46,7 +45,7 @@ validate('123가4567');
 // { type: 'VRN', result: { success: true, data: { usage: '자가용', char: '가', format: 'current' } } }
 
 validate('M12345678');
-// { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M' } } }
+// { type: 'PASSPORT', result: { success: true, data: { type: '복수여권', prefix: 'M', format: 'legacy' } } }
 ```
 
 ### 개별 검증
@@ -76,8 +75,11 @@ validatePCC('P123456789012');
 validateDLN('11-22-123456-78');
 // { success: true, data: { region: '서울', regionCode: '11' } }
 
-validatePassport('M12345678');
-// { success: true, data: { type: '복수여권', prefix: 'M' } }
+validatePassport('M12345678');       // 구형
+// { success: true, data: { type: '복수여권', prefix: 'M', format: 'legacy' } }
+
+validatePassport('M123A4567');       // 차세대 전자여권 (2021-12~)
+// { success: true, data: { type: '복수여권', prefix: 'M', format: 'current' } }
 
 validateVRN('123가4567');
 // { success: true, data: { usage: '자가용', char: '가', format: 'current' } }
@@ -85,6 +87,26 @@ validateVRN('123가4567');
 validateVRN('12가3456'); // 구형 포맷
 // { success: true, data: { usage: '자가용', char: '가', format: 'legacy' } }
 ```
+
+### 체크섬 옵션 (RRN/FRN)
+
+`validateRRN`과 `validateFRN`은 기본적으로 체크섬을 검증합니다. 기존 동작과 같습니다.
+
+2020-10-05 주민등록법 시행규칙 제204호 개편으로 신규 부여·변경 주민등록번호는 뒷자리가 성별 1자리 + 임의번호 6자리가 되면서 검증번호 자리가 사라졌습니다. 이런 번호를 다뤄야 하면 체크섬만 건너뛸 수 있습니다.
+
+```typescript
+validateRRN('900101-1123450');
+// { success: false, message: 'Invalid checksum' }
+
+validateRRN('900101-1123450', { checksum: false });
+// { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
+
+// 체크섬만 건너뛸 뿐 생년월일·성별코드는 계속 검증합니다
+validateRRN('901301-1123450', { checksum: false });
+// { success: false, message: 'Invalid birth date' }
+```
+
+기존 체계 번호에는 체크섬이 여전히 성립하므로 기본값은 검증입니다. 다음 major에서 기본값을 미검증으로 바꿀 예정입니다.
 
 ### 타입 가드
 
@@ -129,8 +151,11 @@ import { DLN_REGIONS, PASSPORT_TYPES, VRN_USAGE_CHARS } from 'korean-id';
 
 DLN_REGIONS['11']          // '서울'
 PASSPORT_TYPES['M']        // '복수여권'
+PASSPORT_TYPES['O']        // '관용여권'
 VRN_USAGE_CHARS['렌터카']   // ['허', '하', '호']
 ```
+
+관용여권 접두사는 여러 공개 자료가 `O`(Official)로 기재하나 정부 1차 원문은 확인하지 못했습니다. 기존에 쓰이던 `G`는 근거를 찾지 못했지만 하위호환을 위해 남겨두었으며 다음 major에서 제거될 예정입니다. 새 코드에서는 `O`를 쓰세요.
 
 ## CLI
 
@@ -142,7 +167,7 @@ npx korean-id 119-81-10010
 #   serialNumber: 10010
 
 npx korean-id --json M12345678
-# {"type":"PASSPORT","result":{"success":true,"data":{"type":"복수여권","prefix":"M"}}}
+# {"type":"PASSPORT","result":{"success":true,"data":{"type":"복수여권","prefix":"M","format":"legacy"}}}
 
 npx korean-id --help
 ```

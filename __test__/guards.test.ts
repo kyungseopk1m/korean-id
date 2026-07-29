@@ -34,6 +34,15 @@ describe('타입 가드', () => {
   it('isPassport', () => {
     expect(isPassport('M12345678')).toBe(true);
     expect(isPassport('X12345678')).toBe(false);
+    // v1.4.0: 차세대 형식과 관용여권 O 수용
+    expect(isPassport('M123A4567')).toBe(true);
+    expect(isPassport('O12345678')).toBe(true);
+    expect(isPassport('G12345678')).toBe(true); // 하위호환
+  });
+
+  it('isRRN/isFRN은 체크섬 옵션과 무관하게 기본(검증) 동작', () => {
+    expect(isRRN('900101-1123450')).toBe(false);
+    expect(isFRN('900101-5123450')).toBe(false);
   });
 
   it('isVRN', () => {

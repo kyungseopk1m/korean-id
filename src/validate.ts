@@ -32,7 +32,7 @@ export type DetectResult =
  * @name validate
  * @description
  * 입력값의 식별번호 타입을 자동 감지하여 적절한 검증 함수를 호출합니다.
- * 감지 우선순위: VRN(한글 포함) → PCC(P접두사) → Passport(M/S/R/G/D접두사)
+ * 감지 우선순위: VRN(한글 포함) → PCC(P접두사) → Passport(M/S/R/O/G/D접두사)
  * → BRN(10자리) → DLN(12자리) → RRN/FRN/CRN(13자리, 성별코드로 구분)
  * 13자리 폴백: 성별코드 5-8이면 FRN 우선 시도 후 실패 시 CRN, 그 외이면 RRN 우선 시도 후 실패 시 CRN
  * @example
@@ -56,8 +56,9 @@ export function validate(value: string): DetectResult {
     return { type: 'PCC', result: validatePCC(trimmed) };
   }
 
-  // Passport: M/S/R/G/D + 9자
-  if ('MSRGD'.includes(upper[0]) && upper.length === 9) {
+  // Passport: M/S/R/O/G/D + 9자 (구형 M12345678 / 차세대 M123A4567 모두 9자)
+  // G는 근거 미확인이나 하위호환을 위해 감지 대상에 남긴다. 다음 major에서 제거.
+  if ('MSRODG'.includes(upper[0]) && upper.length === 9) {
     return { type: 'PASSPORT', result: validatePassport(trimmed) };
   }
 
@@ -74,6 +75,7 @@ export function validate(value: string): DetectResult {
       return { type: 'DLN', result: validateDLN(trimmed) };
     case 13: {
       const code = digits[6];
+      // 13자리는 RRN/FRN/CRN이 자릿수만으로 구분되지 않아 체크섬이 유일한 확증 신호다.
       // 외국인 코드(5,6,7,8) → FRN 우선, 실패 시 CRN
       if ('5678'.includes(code)) {
         const frnResult = validateFRN(trimmed);

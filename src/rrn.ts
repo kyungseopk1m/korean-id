@@ -1,5 +1,5 @@
 import { digitsOnly, isValidDate } from './_internal/utils.js';
-import type { ValidateResult } from './types.js';
+import type { ValidateResult, ChecksumOptions } from './types.js';
 
 export interface RRNData {
   birthDate: string;
@@ -25,13 +25,20 @@ const CENTURY_OFFSET: Record<string, number> = {
 /**
  * @name validateRRN
  * @description
- * 주민등록번호(RRN)를 검증합니다. 체크섬 알고리즘, 성별/세기 코드, 생년월일 유효성을 검증합니다.
+ * 주민등록번호(RRN)를 검증합니다. 체크섬, 성별/세기 코드, 생년월일 유효성을 검증합니다.
  * 하이픈 포함(YYMMDD-XXXXXXX) 및 미포함(YYMMDDXXXXXXX) 형식 모두 허용합니다.
+ *
+ * **2020-10-05 이후 발급분을 다룬다면 `{ checksum: false }`가 필요합니다.**
+ * 주민등록법 시행규칙 제204호 개편으로 신규 부여·변경 번호의 뒷자리가 성별 1자리 +
+ * 임의번호 6자리가 되면서 검증번호 자리가 임의번호에 흡수되어, 기존 체크섬식이 성립하지
+ * 않습니다. 기존 번호에는 여전히 성립하므로 기본값은 검증입니다.
+ * (다음 major에서 기본값을 미검증으로 바꿀 예정입니다.)
  * @example
  * validateRRN('900101-1123459') // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
  * validateRRN('900101-1123450') // { success: false, message: 'Invalid checksum' }
+ * validateRRN('900101-1123450', { checksum: false }) // { success: true, ... }  2020-10 이후 발급분
  */
-export function validateRRN(value: string): ValidateResult<RRNData> {
+export function validateRRN(value: string, options: ChecksumOptions = {}): ValidateResult<RRNData> {
   if (!value.trim()) return { success: false, message: 'Input is required' };
   const d = digitsOnly(value);
   if (!d) return { success: false, message: 'Non-numeric characters found' };
@@ -50,13 +57,14 @@ export function validateRRN(value: string): ValidateResult<RRNData> {
     return { success: false, message: 'Invalid birth date' };
   }
 
-  const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
-  const digits = d.split('').map(Number);
-  const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
-  const checkDigit = (11 - (sum % 11)) % 10;
-
-  if (checkDigit !== digits[12]) {
-    return { success: false, message: 'Invalid checksum' };
+  if (options.checksum ?? true) {
+    const weights = [2, 3, 4, 5, 6, 7, 8, 9, 2, 3, 4, 5];
+    const digits = d.split('').map(Number);
+    const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
+    const checkDigit = (11 - (sum % 11)) % 10;
+    if (checkDigit !== digits[12]) {
+      return { success: false, message: 'Invalid checksum' };
+    }
   }
 
   const month = String(mm).padStart(2, '0');

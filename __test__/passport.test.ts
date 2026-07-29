@@ -77,4 +77,54 @@ describe('validatePassport', () => {
       expect(result.message).toMatch(/8 digits/i);
     });
   });
+
+  // 2021-12-21 도입된 차세대 전자여권: 영문1 + 숫자3 + 영문1 + 숫자4
+  describe('차세대 형식 (2021-12~)', () => {
+    it('M123A4567 수용', () => {
+      const result = validatePassport('M123A4567');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.prefix).toBe('M');
+      expect(result.data.format).toBe('current');
+    });
+
+    it('소문자 입력도 처리', () => {
+      const result = validatePassport('m123a4567');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.format).toBe('current');
+    });
+
+    it('구형은 format이 legacy', () => {
+      const result = validatePassport('M12345678');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.format).toBe('legacy');
+    });
+
+    it('영문 위치가 어긋나면 거부', () => {
+      expect(validatePassport('M1234A567').success).toBe(false);
+      expect(validatePassport('MA1234567').success).toBe(false);
+    });
+  });
+
+  describe('접두사', () => {
+    it('관용여권 O 수용 (공식 표기)', () => {
+      const result = validatePassport('O12345678');
+      expect(result.success).toBe(true);
+      if (!result.success) return;
+      expect(result.data.type).toBe('관용여권');
+    });
+
+    it('G는 하위호환으로 계속 수용 (근거 미확인, 다음 major에서 제거 예정)', () => {
+      expect(validatePassport('G12345678').success).toBe(true);
+    });
+
+    it('목록에 없는 접두사는 거부', () => {
+      const result = validatePassport('X12345678');
+      expect(result.success).toBe(false);
+      if (result.success) return;
+      expect(result.message).toMatch(/prefix/i);
+    });
+  });
 });
