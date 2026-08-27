@@ -1,4 +1,4 @@
-import { digitsOnly } from './_internal/utils.js';
+import { digitsOnly, fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 /**
@@ -8,13 +8,14 @@ import type { ValidateResult } from './types.js';
  * 하이픈 포함(XXXXXX-XXXXXXX) 및 미포함(XXXXXXXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateCRN('110111-0006249') // { success: true }
- * validateCRN('110111-0006248') // { success: false, message: 'Invalid checksum' }
+ * validateCRN('110111-0006248') // { success: false, code: 'INVALID_CHECKSUM', message: 'Invalid checksum' }
  */
 export function validateCRN(value: string): ValidateResult {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const d = digitsOnly(value);
-  if (!d) return { success: false, message: 'Non-numeric characters found' };
-  if (d.length !== 13) return { success: false, message: 'CRN must be 13 digits' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const d = digitsOnly(input);
+  if (!d) return fail('NON_NUMERIC', 'Non-numeric characters found');
+  if (d.length !== 13) return fail('INVALID_LENGTH', 'CRN must be 13 digits');
 
   const weights = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
   const digits = d.split('').map(Number);
@@ -28,7 +29,7 @@ export function validateCRN(value: string): ValidateResult {
   const checkDigit = (10 - (sum % 10)) % 10;
 
   if (checkDigit !== digits[12]) {
-    return { success: false, message: 'Invalid checksum' };
+    return fail('INVALID_CHECKSUM', 'Invalid checksum');
   }
 
   return { success: true };

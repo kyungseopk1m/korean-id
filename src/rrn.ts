@@ -1,4 +1,4 @@
-import { digitsOnly, isValidDate } from './_internal/utils.js';
+import { digitsOnly, isValidDate, fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult, ChecksumOptions } from './types.js';
 
 export interface RRNData {
@@ -35,18 +35,19 @@ const CENTURY_OFFSET: Record<string, number> = {
  * (다음 major에서 기본값을 미검증으로 바꿀 예정입니다.)
  * @example
  * validateRRN('900101-1123459') // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
- * validateRRN('900101-1123450') // { success: false, message: 'Invalid checksum' }
+ * validateRRN('900101-1123450') // { success: false, code: 'INVALID_CHECKSUM', message: 'Invalid checksum' }
  * validateRRN('900101-1123450', { checksum: false }) // { success: true, ... }  2020-10 이후 발급분
  */
 export function validateRRN(value: string, options: ChecksumOptions = {}): ValidateResult<RRNData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const d = digitsOnly(value);
-  if (!d) return { success: false, message: 'Non-numeric characters found' };
-  if (d.length !== 13) return { success: false, message: 'RRN must be 13 digits' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const d = digitsOnly(input);
+  if (!d) return fail('NON_NUMERIC', 'Non-numeric characters found');
+  if (d.length !== 13) return fail('INVALID_LENGTH', 'RRN must be 13 digits');
 
   const genderCode = d[6];
   const info = GENDER_MAP[genderCode];
-  if (!info) return { success: false, message: 'Invalid gender/century code' };
+  if (!info) return fail('INVALID_GENDER_CODE', 'Invalid gender/century code');
 
   const yy = parseInt(d.slice(0, 2), 10);
   const mm = parseInt(d.slice(2, 4), 10);
@@ -54,7 +55,7 @@ export function validateRRN(value: string, options: ChecksumOptions = {}): Valid
   const fullYear = CENTURY_OFFSET[info.century] + yy;
 
   if (!isValidDate(fullYear, mm, dd)) {
-    return { success: false, message: 'Invalid birth date' };
+    return fail('INVALID_BIRTH_DATE', 'Invalid birth date');
   }
 
   if (options.checksum ?? true) {
@@ -63,7 +64,7 @@ export function validateRRN(value: string, options: ChecksumOptions = {}): Valid
     const sum = weights.reduce((acc, w, i) => acc + w * digits[i], 0);
     const checkDigit = (11 - (sum % 11)) % 10;
     if (checkDigit !== digits[12]) {
-      return { success: false, message: 'Invalid checksum' };
+      return fail('INVALID_CHECKSUM', 'Invalid checksum');
     }
   }
 

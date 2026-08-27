@@ -1,3 +1,4 @@
+import { fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 /**
@@ -45,16 +46,17 @@ const CURRENT_BODY = /^\d{3}[A-Z]\d{4}$/;
  * validatePassport('M12345678') // { success: true, data: { type: '복수여권', prefix: 'M', format: 'legacy' } }
  * validatePassport('M123A4567') // { success: true, data: { type: '복수여권', prefix: 'M', format: 'current' } }
  * validatePassport('O12345678') // { success: true, data: { type: '관용여권', prefix: 'O', format: 'legacy' } }
- * validatePassport('X12345678') // { success: false, message: 'Invalid passport prefix' }
+ * validatePassport('X12345678') // { success: false, code: 'INVALID_PREFIX', message: 'Invalid passport prefix' }
  */
 export function validatePassport(value: string): ValidateResult<PassportData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const trimmed = value.trim().toUpperCase();
-  if (trimmed.length !== 9) return { success: false, message: 'Passport number must be 9 characters' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const trimmed = input.toUpperCase();
+  if (trimmed.length !== 9) return fail('INVALID_LENGTH', 'Passport number must be 9 characters');
 
   const prefix = trimmed[0];
   const type = PASSPORT_TYPES[prefix];
-  if (!type) return { success: false, message: 'Invalid passport prefix' };
+  if (!type) return fail('INVALID_PREFIX', 'Invalid passport prefix');
 
   const body = trimmed.slice(1);
   const format: PassportFormat | null = LEGACY_BODY.test(body)
@@ -64,7 +66,7 @@ export function validatePassport(value: string): ValidateResult<PassportData> {
       : null;
   // 차세대 형식 수용으로 "8자리"가 더 이상 정확하지 않으나, 이 문자열을 비교하는 코드가
   // 깨지지 않도록 v1.3.0 메시지를 유지한다. 다음 major에서 정정한다.
-  if (!format) return { success: false, message: 'Passport must have 8 digits after prefix' };
+  if (!format) return fail('INVALID_FORMAT', 'Passport must have 8 digits after prefix');
 
   return { success: true, data: { type, prefix, format } };
 }

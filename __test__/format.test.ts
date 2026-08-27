@@ -103,6 +103,9 @@ describe('formatPCC', () => {
   it('잘못된 형식 → null', () => {
     expect(formatPCC('X123456789012')).toBeNull();
     expect(formatPCC('P12345')).toBeNull();
+    // 길이와 접두사는 맞지만 본문이 숫자가 아닌 경우
+    expect(formatPCC('P12345678901A')).toBeNull();
+    expect(formatPCC('PABCDEFGHIJKL')).toBeNull();
   });
 });
 

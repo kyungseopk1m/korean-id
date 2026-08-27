@@ -1,4 +1,4 @@
-import { digitsOnly, isValidDate } from './_internal/utils.js';
+import { digitsOnly, isValidDate, fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult, ChecksumOptions } from './types.js';
 
 export interface FRNData {
@@ -29,19 +29,20 @@ const GENDER_MAP: Record<string, { gender: 'male' | 'female'; century: '1900s' |
  * 하이픈 포함(YYMMDD-XXXXXXX) 및 미포함(YYMMDDXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateFRN('900101-5123452') // { success: true, data: { birthDate: '1990-01-01', gender: 'male', century: '1900s' } }
- * validateFRN('900101-1123459') // { success: false, message: 'Invalid gender/century code for foreigner' }
- * validateFRN('900101-5123451') // { success: false, message: 'Invalid checksum' }
+ * validateFRN('900101-1123459') // { success: false, code: 'INVALID_GENDER_CODE', message: 'Invalid gender/century code for foreigner' }
+ * validateFRN('900101-5123451') // { success: false, code: 'INVALID_CHECKSUM', message: 'Invalid checksum' }
  * validateFRN('900101-5123451', { checksum: false }) // { success: true, ... }
  */
 export function validateFRN(value: string, options: ChecksumOptions = {}): ValidateResult<FRNData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const d = digitsOnly(value);
-  if (!d) return { success: false, message: 'Non-numeric characters found' };
-  if (d.length !== 13) return { success: false, message: 'FRN must be 13 digits' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const d = digitsOnly(input);
+  if (!d) return fail('NON_NUMERIC', 'Non-numeric characters found');
+  if (d.length !== 13) return fail('INVALID_LENGTH', 'FRN must be 13 digits');
 
   const genderCode = d[6];
   const info = GENDER_MAP[genderCode];
-  if (!info) return { success: false, message: 'Invalid gender/century code for foreigner' };
+  if (!info) return fail('INVALID_GENDER_CODE', 'Invalid gender/century code for foreigner');
 
   const yy = parseInt(d.slice(0, 2), 10);
   const mm = parseInt(d.slice(2, 4), 10);
@@ -49,7 +50,7 @@ export function validateFRN(value: string, options: ChecksumOptions = {}): Valid
   const fullYear = (info.century === '1900s' ? 1900 : 2000) + yy;
 
   if (!isValidDate(fullYear, mm, dd)) {
-    return { success: false, message: 'Invalid birth date' };
+    return fail('INVALID_BIRTH_DATE', 'Invalid birth date');
   }
 
   if (options.checksum ?? true) {
@@ -59,7 +60,7 @@ export function validateFRN(value: string, options: ChecksumOptions = {}): Valid
     // FRN 검증번호 = RRN 방식 체크디지트에 +2(mod 10) 보정 (전자정부 표준 EgovNumberCheckUtil)
     const checkDigit = (((11 - (sum % 11)) % 10) + 2) % 10;
     if (checkDigit !== digits[12]) {
-      return { success: false, message: 'Invalid checksum' };
+      return fail('INVALID_CHECKSUM', 'Invalid checksum');
     }
   }
 

@@ -1,4 +1,4 @@
-import { digitsOnly } from './_internal/utils.js';
+import { digitsOnly, fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 /** 운전면허번호 지역코드 → 지역명 매핑 */
@@ -36,17 +36,18 @@ export interface DLNData {
  * 하이픈 포함(XX-XX-XXXXXX-XX) 및 미포함(XXXXXXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateDLN('11-22-123456-78') // { success: true, data: { region: '서울', regionCode: '11' } }
- * validateDLN('99-22-123456-78') // { success: false, message: 'Invalid region code' }
+ * validateDLN('99-22-123456-78') // { success: false, code: 'INVALID_REGION_CODE', message: 'Invalid region code' }
  */
 export function validateDLN(value: string): ValidateResult<DLNData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const d = digitsOnly(value);
-  if (!d) return { success: false, message: 'Non-numeric characters found' };
-  if (d.length !== 12) return { success: false, message: 'DLN must be 12 digits' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const d = digitsOnly(input);
+  if (!d) return fail('NON_NUMERIC', 'Non-numeric characters found');
+  if (d.length !== 12) return fail('INVALID_LENGTH', 'DLN must be 12 digits');
 
   const regionCode = d.slice(0, 2);
   const region = DLN_REGIONS[regionCode];
-  if (!region) return { success: false, message: 'Invalid region code' };
+  if (!region) return fail('INVALID_REGION_CODE', 'Invalid region code');
 
   return { success: true, data: { region, regionCode } };
 }

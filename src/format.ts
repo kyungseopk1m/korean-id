@@ -1,4 +1,5 @@
-import { digitsOnly } from './_internal/utils.js';
+import { digitsOnly, normalizeInput } from './_internal/utils.js';
+import { PASSPORT_TYPES } from './passport.js';
 
 /**
  * @name formatBRN
@@ -116,7 +117,9 @@ export function maskDLN(value: string): string | null {
  * formatPCC('p123456789012') // 'P123456789012'
  */
 export function formatPCC(value: string): string | null {
-  const trimmed = value.trim().toUpperCase();
+  const input = normalizeInput(value);
+  if (input === null) return null;
+  const trimmed = input.toUpperCase();
   if (trimmed.length !== 13 || trimmed[0] !== 'P') return null;
   if (!/^\d{12}$/.test(trimmed.slice(1))) return null;
   return trimmed;
@@ -148,15 +151,18 @@ export function maskCRN(value: string): string | null {
 
 /**
  * @name formatVRN
- * @description 자동차등록번호에서 공백을 제거하여 정규화합니다. 현행(2019~)/구형(2006~2018) 포맷 모두 지원합니다. 포맷 검증이 필요하면 validateVRN을 먼저 호출하세요.
+ * @description 자동차등록번호에서 공백을 제거하여 정규화합니다. 전국번호판의 현행(2019~)/구형(2006~2018)과 일반사업용(지역명 포함) 포맷을 지원합니다. 포맷 검증이 필요하면 validateVRN을 먼저 호출하세요.
  * @example
- * formatVRN('123가 4567') // '123가4567'
- * formatVRN('12가 3456')  // '12가3456'
+ * formatVRN('123가 4567')   // '123가4567'
+ * formatVRN('12가 3456')    // '12가3456'
+ * formatVRN('서울 82바 1234') // '서울82바1234'
  */
 export function formatVRN(value: string): string | null {
-  const trimmed = value.trim().replace(/\s/g, '');
-  // 현행(3자리) 또는 구형(2자리) + 한글1자 + 4자리숫자
-  if (!/^\d{2,3}[가-힣]\d{4}$/.test(trimmed)) return null;
+  const input = normalizeInput(value);
+  if (input === null) return null;
+  const trimmed = input.replace(/\s/g, '');
+  // 선택적 지역명(한글 2자) + 현행(3자리) 또는 구형(2자리) + 한글1자 + 4자리숫자
+  if (!/^([가-힣]{2})?\d{2,3}[가-힣]\d{4}$/.test(trimmed)) return null;
   return trimmed;
 }
 
@@ -164,8 +170,9 @@ export function formatVRN(value: string): string | null {
  * @name maskVRN
  * @description 자동차등록번호 뒤 4자리를 마스킹합니다.
  * @example
- * maskVRN('123가4567') // '123가****'
- * maskVRN('12가3456')  // '12가****'
+ * maskVRN('123가4567')   // '123가****'
+ * maskVRN('12가3456')    // '12가****'
+ * maskVRN('서울82바1234') // '서울82바****'
  */
 export function maskVRN(value: string): string | null {
   const formatted = formatVRN(value);
@@ -184,9 +191,11 @@ const PASSPORT_BODY = /^(?:\d{8}|\d{3}[A-Z]\d{4})$/;
  * maskPassport('M123A4567') // 'M123A****'
  */
 export function maskPassport(value: string): string | null {
-  const trimmed = value.trim().toUpperCase();
+  const input = normalizeInput(value);
+  if (input === null) return null;
+  const trimmed = input.toUpperCase();
   if (trimmed.length !== 9) return null;
-  if (!['M', 'S', 'R', 'O', 'G', 'D'].includes(trimmed[0])) return null;
+  if (!PASSPORT_TYPES[trimmed[0]]) return null;
   if (!PASSPORT_BODY.test(trimmed.slice(1))) return null;
   return `${trimmed.slice(0, 5)}${'*'.repeat(4)}`;
 }

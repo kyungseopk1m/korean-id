@@ -18,7 +18,7 @@ export type { DLNData } from './dln.js';
 export { validatePassport, PASSPORT_TYPES } from './passport.js';
 export type { PassportData, PassportFormat } from './passport.js';
 
-export { validateVRN, VRN_USAGE_CHARS } from './vrn.js';
+export { validateVRN, VRN_USAGE_CHARS, VRN_REGIONS } from './vrn.js';
 export type { VRNData, VRNUsage, VRNFormat } from './vrn.js';
 
 export { formatBRN, formatRRN, formatCRN, formatFRN, maskRRN, maskBRN, maskFRN, formatDLN, maskDLN, formatPCC, maskPCC, maskCRN, maskPassport, formatVRN, maskVRN } from './format.js';
@@ -28,4 +28,4 @@ export type { DetectResult, IdType } from './validate.js';
 
 export { isBRN, isRRN, isCRN, isFRN, isPCC, isDLN, isPassport, isVRN } from './guards.js';
 
-export type { ValidateResult, ChecksumOptions } from './types.js';
+export type { ValidateResult, ChecksumOptions, IdErrorCode } from './types.js';

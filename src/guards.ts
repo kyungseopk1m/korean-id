@@ -1,4 +1,5 @@
 import { validateBRN } from './brn.js';
+import type { ChecksumOptions } from './types.js';
 import { validateRRN } from './rrn.js';
 import { validateCRN } from './crn.js';
 import { validateFRN } from './frn.js';
@@ -10,14 +11,20 @@ import { validateVRN } from './vrn.js';
 /** 유효한 사업자등록번호인지 확인합니다. */
 export const isBRN = (value: string): boolean => validateBRN(value).success;
 
-/** 유효한 주민등록번호인지 확인합니다. */
-export const isRRN = (value: string): boolean => validateRRN(value).success;
+/**
+ * 유효한 주민등록번호인지 확인합니다.
+ * `{ checksum: false }`를 주면 `validateRRN`과 동일하게 체크섬 검증을 건너뜁니다.
+ */
+export const isRRN = (value: string, options?: ChecksumOptions): boolean => validateRRN(value, options).success;
 
 /** 유효한 법인등록번호인지 확인합니다. */
 export const isCRN = (value: string): boolean => validateCRN(value).success;
 
-/** 유효한 외국인등록번호인지 확인합니다. */
-export const isFRN = (value: string): boolean => validateFRN(value).success;
+/**
+ * 유효한 외국인등록번호인지 확인합니다.
+ * `{ checksum: false }`를 주면 `validateFRN`과 동일하게 체크섬 검증을 건너뜁니다.
+ */
+export const isFRN = (value: string, options?: ChecksumOptions): boolean => validateFRN(value, options).success;
 
 /** 유효한 개인통관고유부호인지 확인합니다. */
 export const isPCC = (value: string): boolean => validatePCC(value).success;

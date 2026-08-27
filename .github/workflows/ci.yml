@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -9,17 +12,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        # package.json 의 engines(>=18)가 실제로 지키는 범위인지 확인한다
+        node-version: ["18", "20", "22", "24"]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f  # v6.3.0
         with:
-          node-version: "22"
+          node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run tests
         run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Run CLI tests
+        run: npm run test:cli

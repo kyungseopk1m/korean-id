@@ -1,6 +1,6 @@
 {
   "name": "korean-id",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "한국 식별번호 통합 검증 라이브러리 (BRN/RRN/CRN/FRN/PCC/DLN/Passport/VRN)",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
@@ -17,15 +17,17 @@
         "types": "./dist/cjs/index.d.ts",
         "default": "./dist/cjs/index.js"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "test": "jest",
+    "test:cli": "jest --testPathIgnorePatterns=/node_modules/ --testMatch=**/__test__/cli.test.ts",
     "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup.sh",
     "attw": "attw --pack",
     "publint": "publint --strict",
     "check": "npm run attw && npm run publint",
-    "deploy": "npm run build && npm run check && npm publish --access=public"
+    "deploy": "npm run build && npm run check && npm run test:cli && npm publish --access=public"
   },
   "keywords": [
     "사업자등록번호",

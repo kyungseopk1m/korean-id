@@ -2,6 +2,65 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-08-27
+
+기존에 유효하던 입력을 거부하지 않는 추가 릴리스입니다. `^1.4.0` 사용자에게 그대로 적용됩니다.
+
+v1.4.0과 판정이 달라지는 경우는 새로 통과하게 되는 입력뿐입니다(일반사업용 지역명 번호판, 비문자열 입력).
+실패 결과의 `message` 문자열은 한 건도 바뀌지 않았습니다. v1.4.0 dist와 공개 함수 32개 x 입력 22,531개를
+전수 대조해 확인했습니다(비교 720,992건, 판정 반전 0종, 메시지 변경 0종, 신규 throw 0종, 기존 성공 입력의
+반환값 변화 0종). 대조 입력에는 원시 문자열과 `new String(...)` 객체가 함께 들어 있습니다.
+
+### Added
+- **오류 코드 `code`**: 검증 실패 결과에 `IdErrorCode` 값이 실립니다(`INVALID_CHECKSUM`, `INVALID_BIRTH_DATE` 등 16종). `message`는 사람이 읽는 영문 문장이라 문구가 정정될 수 있으므로, 실패 사유로 분기하거나 자체 문구로 번역해야 한다면 이 코드를 쓰세요. 하위호환을 위해 선택 필드이며 실제로는 항상 채워집니다. 다음 major에서 필수 필드가 됩니다. `IdErrorCode` 타입을 export합니다.
+- **`checksum` 옵션 전파**: `isRRN`/`isFRN`이 두 번째 인자로 `ChecksumOptions`를 받습니다. `validate()`도 두 번째 인자를 받으며, `{ checksum: false }`일 때 13자리 감지가 RRN/FRN 엄격 검증 → CRN 확증 → RRN/FRN 체크섬 미검증 순으로 폴백합니다. CLI에는 `--no-checksum` 플래그가 생겼습니다. v1.4.0에서 `validateRRN`/`validateFRN` 직접 호출로만 쓸 수 있던 옵션을 타입가드·자동감지·CLI에서도 쓸 수 있습니다. **기본값은 그대로 검증이며, 기본 경로의 판정은 v1.4.0과 동일합니다.**
+- **자동차등록번호 일반사업용 지역명 번호판**: `서울 82바 1234` 형태를 `validateVRN`/`isVRN`/`formatVRN`/`maskVRN`/`validate`가 수용합니다. 택시·버스·화물 등 자동차운수사업용은 2019년 번호판 3자리 확대 대상이 아니라 현재도 지역명 + 2자리로 발급됩니다. 지역명은 고시 제6조("비사업용 및 대여사업용 자동차에 부착하는 등록번호판에는 관할관청의 기호표시를 하지 아니한다")에 따라 일반사업용에만 붙으므로 `서울82가1234`나 `서울82허1234`는 거부합니다. `VRN_REGIONS` 상수와 `VRNData.region` 선택 필드를 export합니다.
+- **`VRNData.region`**: 지역명 번호판의 시·도 지역명이 담깁니다. 지역명이 없는 전국번호판에서는 채워지지 않습니다.
+
+### Changed
+- **비문자열 입력에서 더 이상 예외를 던지지 않습니다**: `null`·`undefined`·숫자·객체를 넘기면 `TypeError` 대신 검증 함수는 `{ success: false, code: 'INPUT_REQUIRED' }`, 타입가드는 `false`, `format*`/`mask*`는 `null`, `validate()`는 `{ type: null }`을 반환합니다. 타입은 계속 `string`이지만 JS 소비자가 폼 값에서 `null`을 그대로 넘기는 일이 흔합니다. 원시 문자열 입력의 판정은 전부 그대로이고, `new String(...)` 객체도 이전과 같이 문자열로 처리합니다(다른 realm에서 만든 것 포함). `trim`·`replace`를 흉내낸 임의 객체는 이전에도 대부분 `TypeError`를 일으켰고, 이제는 `INPUT_REQUIRED`를 반환합니다.
+- **`maskPassport`가 `PASSPORT_TYPES`를 재사용합니다**: 접두사 목록을 `validatePassport`와 따로 정의하고 있어서, 접두사가 바뀔 때마다 두 곳을 동시에 고쳐야 했습니다. 상수 하나로 모았습니다. **동작은 바뀌지 않습니다.**
+
+### Docs
+- README 한/영에 오류 코드, `checksum` 옵션 전파, 지역명 번호판, 비문자열 입력 처리를 반영했습니다.
+
+### Internal
+- CI가 `main` push에서도 실행되고 Node 18/20/22/24 매트릭스로 실행됩니다. `engines`가 선언한 범위를 실제로 검사합니다.
+- CLI 스모크 테스트 25건을 추가했습니다(`npm run test:cli`). 기본 `npm test`는 dist가 필요 없도록 분리해 두었습니다.
+- `jest.config.mjs`에서 쓰이지 않는 `moduleDirectories`와 `@/` 별칭 매핑을 제거했습니다.
+
+### 타입 레벨 영향
+
+런타임 판정은 바뀌지 않지만 **타입 정의에는 선택 필드와 선택 인자가 추가**되었습니다.
+값을 읽는 통상적인 사용(`result.success`, `result.message`, `result.data.usage`)과 기존 인자 개수
+호출은 그대로 컴파일됩니다. 다만 아래 세 가지 패턴은 `typescript@6` 기준으로 컴파일 오류가 납니다.
+
+```typescript
+type Failure = Extract<ValidateResult, { success: false }>;
+
+// TS2741: Property 'code' is missing
+const fields: Record<keyof Failure, string> = { success: 's', message: 'm' };
+
+// TS2741: Property 'region' is missing
+const vrnFields: Record<keyof VRNData, string> = { usage: 'u', char: 'c', format: 'f' };
+
+// TS2322: Type '1 | 2' is not assignable to type '1'
+const arity: 1 = 1 as Parameters<typeof validate>['length'];
+```
+
+즉 `keyof`로 필드를 전수 열거하거나 `Parameters<...>['length']`를 고정값으로 쓰는 코드는 수정해야
+합니다. 새 필드를 목록에 더하거나 `Partial<Record<keyof Failure, string>>`로 받고, `length` 단언은
+`1 | 2`로 넓히면 됩니다.
+
+이 라이브러리는 이런 변화를 **minor 릴리스로 배포합니다.** 선택 필드·선택 인자 추가는 semver상 호환 변경으로
+보는 것이 일반적이고, 대안인 major 릴리스는 `^1.4.0` 사용자에게 자동으로 닿지 않아 이번 수정이
+전달되지 않습니다. `keyof`로 반환 타입을 전수 열거하는 사용은 지원 범위에서 제외합니다.
+
+### Notes
+- 자동차등록번호 용도 문자 `배`(택배)는 지역명 없는 입력에서 v1.4.0과 같이 `기타`로 분류됩니다. 고시 제5조는 일반용 자동차운수사업 문자로 `바`·`사`·`아`·`자`·`배` 5종을 두지만, 기존 입력의 `usage` 값을 바꾸면 판정이 뒤집히므로 다음 major에서 정정합니다. 신규 경로인 지역명 번호판(`서울 82배 1234`)에서는 고시대로 `영업용`으로 분류합니다.
+- 지역명이 없는 입력의 판정은 강화하지 않았습니다. 고시상 존재하지 않는 `123바4567`(사업용 3자리)이나 `000가1234`(선두 0 분류기호)는 v1.4.0과 같이 계속 통과합니다. 거부하도록 바꾸면 판정이 뒤집히므로 다음 major로 미룹니다.
+- 지역명 목록 17종은 국토교통부 자동차 등록번호판 고시 제6조의 시·도 약칭 표를 따릅니다. 강원·전북 특별자치도 출범 이후에도 번호판 표기는 `강원`·`전북`입니다.
+
 ## [1.4.0] - 2026-07-29
 
 기존에 유효하던 입력을 거부하지 않는 추가 릴리스입니다. `^1.3.0` 사용자에게 그대로 적용됩니다.

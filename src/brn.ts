@@ -1,4 +1,4 @@
-import { digitsOnly } from './_internal/utils.js';
+import { digitsOnly, fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 export interface BRNData {
@@ -20,26 +20,27 @@ export interface BRNData {
  * 하이픈 포함(XXX-XX-XXXXX) 및 미포함(XXXXXXXXXX) 형식 모두 허용합니다.
  * @example
  * validateBRN('119-81-10010') // { success: true, data: { officeCode: '119', typeCode: '81', serialNumber: '10010' } }
- * validateBRN('000-00-00000') // { success: false, message: 'Invalid tax office code' }
+ * validateBRN('000-00-00000') // { success: false, code: 'INVALID_OFFICE_CODE', message: 'Invalid tax office code' }
  */
 export function validateBRN(value: string): ValidateResult<BRNData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const d = digitsOnly(value);
-  if (!d) return { success: false, message: 'Non-numeric characters found' };
-  if (d.length !== 10) return { success: false, message: 'BRN must be 10 digits' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const d = digitsOnly(input);
+  if (!d) return fail('NON_NUMERIC', 'Non-numeric characters found');
+  if (d.length !== 10) return fail('INVALID_LENGTH', 'BRN must be 10 digits');
 
   const officeCode = d.slice(0, 3);
   const typeCode = d.slice(3, 5);
   const serial = d.slice(5, 9);
 
   if (parseInt(officeCode, 10) < 101) {
-    return { success: false, message: 'Invalid tax office code' };
+    return fail('INVALID_OFFICE_CODE', 'Invalid tax office code');
   }
   if (typeCode === '00') {
-    return { success: false, message: 'Invalid business type code' };
+    return fail('INVALID_BUSINESS_TYPE_CODE', 'Invalid business type code');
   }
   if (serial === '0000') {
-    return { success: false, message: 'Invalid serial number' };
+    return fail('INVALID_SERIAL_NUMBER', 'Invalid serial number');
   }
 
   const weights = [1, 3, 7, 1, 3, 7, 1, 3, 5];
@@ -49,7 +50,7 @@ export function validateBRN(value: string): ValidateResult<BRNData> {
   const checkDigit = (10 - ((sum + extra) % 10)) % 10;
 
   if (checkDigit !== digits[9]) {
-    return { success: false, message: 'Invalid checksum' };
+    return fail('INVALID_CHECKSUM', 'Invalid checksum');
   }
 
   return {

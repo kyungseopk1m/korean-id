@@ -11,15 +11,18 @@ Usage:
   korean-id --json <value>   JSON 형식으로 출력
 
 Options:
-  -h, --help     도움말
-  -v, --version  버전 정보
-  --json         JSON 출력
+  -h, --help       도움말
+  -v, --version    버전 정보
+  --json           JSON 출력
+  --no-checksum    주민·외국인등록번호의 체크섬 검증을 건너뜁니다.
+                   2020-10-05 개편 이후 검증번호가 없는 번호에 쓰세요.
 
 Examples:
   korean-id 119-81-10010
   korean-id M12345678
   korean-id 123가4567
   korean-id --json 900101-1123459
+  korean-id --no-checksum 900101-1123450
 `.trim();
 
 const TYPE_NAMES = {
@@ -48,15 +51,17 @@ if (args.includes('-v') || args.includes('--version')) {
   process.exit(0);
 }
 
+const FLAGS = ['--json', '--no-checksum'];
 const jsonMode = args.includes('--json');
-const value = args.filter((a) => a !== '--json').join(' ');
+const checksum = !args.includes('--no-checksum');
+const value = args.filter((a) => !FLAGS.includes(a)).join(' ');
 
 if (!value) {
   console.error('Error: 검증할 식별번호를 입력하세요.');
   process.exit(1);
 }
 
-const detected = validate(value);
+const detected = validate(value, { checksum });
 
 if (jsonMode) {
   console.log(JSON.stringify(detected));

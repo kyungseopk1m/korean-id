@@ -1,3 +1,4 @@
+import { fail, normalizeInput } from './_internal/utils.js';
 import type { ValidateResult } from './types.js';
 
 export interface PCCData {
@@ -12,14 +13,15 @@ export interface PCCData {
  * 포맷: `P` + 12자리 숫자 (총 13자)
  * @example
  * validatePCC('P123456789012') // { success: true, data: { number: '123456789012' } }
- * validatePCC('X123456789012') // { success: false, message: 'PCC must start with P' }
+ * validatePCC('X123456789012') // { success: false, code: 'INVALID_PREFIX', message: 'PCC must start with P' }
  */
 export function validatePCC(value: string): ValidateResult<PCCData> {
-  if (!value.trim()) return { success: false, message: 'Input is required' };
-  const trimmed = value.trim().toUpperCase();
-  if (trimmed.length !== 13) return { success: false, message: 'PCC must be 13 characters' };
-  if (trimmed[0] !== 'P') return { success: false, message: 'PCC must start with P' };
+  const input = normalizeInput(value);
+  if (input === null) return fail('INPUT_REQUIRED', 'Input is required');
+  const trimmed = input.toUpperCase();
+  if (trimmed.length !== 13) return fail('INVALID_LENGTH', 'PCC must be 13 characters');
+  if (trimmed[0] !== 'P') return fail('INVALID_PREFIX', 'PCC must start with P');
   const number = trimmed.slice(1);
-  if (!/^\d{12}$/.test(number)) return { success: false, message: 'PCC must have 12 digits after P' };
+  if (!/^\d{12}$/.test(number)) return fail('INVALID_FORMAT', 'PCC must have 12 digits after P');
   return { success: true, data: { number } };
 }
